@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Story, Language } from '../types';
 import { X, ExternalLink, Globe, Heart, Loader2 } from 'lucide-react';
 import { translateStorySummary } from '../services/geminiService';
+import { motion } from 'framer-motion';
 
 interface StoryDetailModalProps {
   story: Story;
@@ -28,7 +29,7 @@ export const StoryDetailModal: React.FC<StoryDetailModalProps> = ({ story, onClo
 
     try {
       const translatedText = await translateStorySummary(story.summary, currentLanguage);
-      
+
       // Update local story object to cache the translation
       const updatedStory = {
         ...story,
@@ -37,7 +38,7 @@ export const StoryDetailModal: React.FC<StoryDetailModalProps> = ({ story, onClo
           [currentLanguage]: translatedText
         }
       };
-      
+
       onUpdateStory(updatedStory);
     } catch (err) {
       setError("Oops! Couldn't translate right now.");
@@ -46,9 +47,9 @@ export const StoryDetailModal: React.FC<StoryDetailModalProps> = ({ story, onClo
     }
   };
 
-  const displayedSummary = 
-    currentLanguage === Language.ENGLISH 
-      ? story.summary 
+  const displayedSummary =
+    currentLanguage === Language.ENGLISH
+      ? story.summary
       : story.translations[currentLanguage] || story.summary;
 
   const isTranslationAvailable = currentLanguage === Language.ENGLISH || !!story.translations[currentLanguage];
@@ -56,44 +57,53 @@ export const StoryDetailModal: React.FC<StoryDetailModalProps> = ({ story, onClo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 sm:px-0">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Modal Content */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col animate-in fade-in zoom-in-95 duration-200">
-        
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        transition={{ type: "spring", duration: 0.5 }}
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col"
+      >
+
         {/* Header Image */}
         <div className="relative h-64 sm:h-80 flex-shrink-0">
-          <img 
-            src={story.imageUrl} 
-            alt={story.title} 
+          <img
+            src={story.imageUrl}
+            alt={story.title}
             className="w-full h-full object-cover"
           />
-          <button 
+          <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 bg-black/30 hover:bg-black/50 text-white rounded-full transition-colors backdrop-blur-md"
           >
             <X className="w-6 h-6" />
           </button>
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 pt-20">
-             <div className="flex gap-2 mb-2">
-               {story.topics.map(t => (
-                 <span key={t} className="px-2 py-0.5 bg-white/20 backdrop-blur-md text-white text-xs rounded-md border border-white/10">
-                   {t}
-                 </span>
-               ))}
-             </div>
-             <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
-               {story.title}
-             </h2>
+            <div className="flex gap-2 mb-2">
+              {story.topics.map(t => (
+                <span key={t} className="px-2 py-0.5 bg-white/20 backdrop-blur-md text-white text-xs rounded-md border border-white/10">
+                  {t}
+                </span>
+              ))}
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+              {story.title}
+            </h2>
           </div>
         </div>
 
         {/* Body */}
         <div className="p-6 sm:p-8 space-y-8 bg-white flex-grow">
-          
+
           {/* Metadata Row */}
           <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-100">
             <div className="flex items-center gap-3">
@@ -105,10 +115,10 @@ export const StoryDetailModal: React.FC<StoryDetailModalProps> = ({ story, onClo
                 <p className="text-xs text-slate-500">{story.region}</p>
               </div>
             </div>
-            
-            <a 
-              href={story.sourceUrl} 
-              target="_blank" 
+
+            <a
+              href={story.sourceUrl}
+              target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 text-sm font-medium px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
             >
@@ -128,16 +138,11 @@ export const StoryDetailModal: React.FC<StoryDetailModalProps> = ({ story, onClo
                   key={lang}
                   onClick={() => {
                     setCurrentLanguage(lang);
-                    // If switching to a non-English language that isn't cached, triggering translate immediately would be good UX,
-                    // but per requirements, user clicks a "Translate" action.
-                    // However, we can just treat the tab switch as intent if we want smoother UX.
-                    // Let's keep it simple: switch tab. If not translated, show button.
                   }}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    currentLanguage === lang 
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' 
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentLanguage === lang
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
                       : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
-                  }`}
+                    }`}
                 >
                   {lang}
                 </button>
@@ -155,16 +160,16 @@ export const StoryDetailModal: React.FC<StoryDetailModalProps> = ({ story, onClo
             ) : null}
 
             {!isTranslationAvailable && !isTranslating ? (
-               <div className="flex flex-col items-center justify-center py-8 text-center">
-                 <p className="text-slate-600 mb-4">Click below to see this in {currentLanguage}.</p>
-                 <button 
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-slate-600 mb-4">Click below to see this in {currentLanguage}.</p>
+                <button
                   onClick={handleTranslate}
                   className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition-all flex items-center gap-2"
-                 >
-                   <Globe className="w-4 h-4" />
-                   Translate Now
-                 </button>
-               </div>
+                >
+                  <Globe className="w-4 h-4" />
+                  Translate Now
+                </button>
+              </div>
             ) : (
               <div className="prose prose-lg prose-indigo max-w-none">
                 <p className="text-slate-700 leading-relaxed text-lg">
@@ -172,7 +177,7 @@ export const StoryDetailModal: React.FC<StoryDetailModalProps> = ({ story, onClo
                 </p>
               </div>
             )}
-            
+
             {error && (
               <p className="text-red-500 text-sm mt-4 text-center bg-red-50 p-2 rounded-lg border border-red-100">
                 {error}
@@ -182,7 +187,7 @@ export const StoryDetailModal: React.FC<StoryDetailModalProps> = ({ story, onClo
 
           {/* Action Footer */}
           <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
-            <button 
+            <button
               onClick={() => onLike(story.id)}
               className="flex items-center gap-2 px-4 py-2 rounded-full bg-pink-50 text-pink-600 hover:bg-pink-100 transition-colors"
             >
@@ -195,7 +200,7 @@ export const StoryDetailModal: React.FC<StoryDetailModalProps> = ({ story, onClo
           </div>
 
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

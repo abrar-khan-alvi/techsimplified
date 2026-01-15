@@ -2,6 +2,7 @@ import React from 'react';
 import { Story, Region } from '../types';
 import { REGION_COLORS } from '../constants';
 import { Globe, Heart, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface StoryCardProps {
   story: Story;
@@ -11,16 +12,23 @@ interface StoryCardProps {
 
 export const StoryCard: React.FC<StoryCardProps> = ({ story, onClick, onLike }) => {
   return (
-    <div 
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
       onClick={() => onClick(story)}
-      className="group bg-white rounded-2xl shadow-sm hover:shadow-md border border-slate-100 overflow-hidden cursor-pointer transition-all duration-300 flex flex-col h-full"
+      className="group bg-white rounded-2xl shadow-sm hover:shadow-xl border border-slate-100 overflow-hidden cursor-pointer flex flex-col h-full"
     >
       {/* Image Section */}
       <div className="relative h-48 overflow-hidden bg-slate-200">
-        <img 
+        <motion.img 
           src={story.imageUrl} 
           alt={story.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="w-full h-full object-cover"
+          whileHover={{ scale: 1.05 }}
+          transition={{ duration: 0.5 }}
           loading="lazy"
         />
         <div className="absolute top-3 left-3">
@@ -66,7 +74,9 @@ export const StoryCard: React.FC<StoryCardProps> = ({ story, onClick, onLike }) 
             onClick={(e) => onLike(e, story.id)}
             className="flex items-center gap-1.5 text-slate-500 hover:text-pink-500 transition-colors text-sm group/like"
           >
-            <Heart className={`w-4 h-4 ${story.likes > 0 ? 'fill-pink-50 text-pink-500' : ''} group-hover/like:fill-pink-100`} />
+            <motion.div whileTap={{ scale: 1.2 }}>
+              <Heart className={`w-4 h-4 ${story.likes > 0 ? 'fill-pink-50 text-pink-500' : ''} group-hover/like:fill-pink-100`} />
+            </motion.div>
             <span>{story.likes}</span>
           </button>
 
@@ -76,6 +86,6 @@ export const StoryCard: React.FC<StoryCardProps> = ({ story, onClick, onLike }) 
           </span>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
